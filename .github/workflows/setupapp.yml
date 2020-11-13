@@ -3,8 +3,6 @@ name: deploy
 on:
   # master only tests
   push:
-    branches:
-      - master
 
 jobs:
   # caching of these jobs:

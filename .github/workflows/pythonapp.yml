@@ -3,8 +3,6 @@ name: build
 on:
   # quick tests for every pull request
   push:
-    branches:
-      - master
   pull_request:
 
 jobs:
