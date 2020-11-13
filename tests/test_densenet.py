@@ -65,7 +65,7 @@ class TestPretrainedDENSENET(unittest.TestCase):
         net = test_pretrained_networks(model, input_param, device)
         net.eval()
         with torch.no_grad():
-            result = net.forward(torch.randn(input_shape))
+            result = net.forward(torch.randn(input_shape).to(device))
             self.assertEqual(result.shape, expected_shape)
 
 
