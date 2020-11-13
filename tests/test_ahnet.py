@@ -16,7 +16,7 @@ from parameterized import parameterized
 
 from monai.networks.blocks import FCN, MCFCN
 from monai.networks.nets import AHNet
-from tests.utils import skip_if_quick, test_script_save, test_pretrained_networks
+from tests.utils import skip_if_quick, test_pretrained_networks, test_script_save
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -134,12 +134,7 @@ class TestFCN(unittest.TestCase):
 
 
 class TestFCNWithPretrain(unittest.TestCase):
-    @parameterized.expand(
-        [
-            TEST_CASE_FCN_WITH_PRETRAIN_1,
-            TEST_CASE_FCN_WITH_PRETRAIN_2
-        ]
-    )
+    @parameterized.expand([TEST_CASE_FCN_WITH_PRETRAIN_1, TEST_CASE_FCN_WITH_PRETRAIN_2])
     @skip_if_quick
     def test_fcn_shape(self, input_param, input_shape, expected_shape):
         net = test_pretrained_networks(FCN, input_param, device)
@@ -160,12 +155,7 @@ class TestMCFCN(unittest.TestCase):
 
 
 class TestMCFCNWithPretrain(unittest.TestCase):
-    @parameterized.expand(
-        [
-            TEST_CASE_MCFCN_WITH_PRETRAIN_1,
-            TEST_CASE_MCFCN_WITH_PRETRAIN_2
-        ]
-    )
+    @parameterized.expand([TEST_CASE_MCFCN_WITH_PRETRAIN_1, TEST_CASE_MCFCN_WITH_PRETRAIN_2])
     def test_mcfcn_shape(self, input_param, input_shape, expected_shape):
         net = test_pretrained_networks(MCFCN, input_param, device)
         net.eval()

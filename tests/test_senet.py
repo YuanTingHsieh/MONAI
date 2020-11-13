@@ -33,10 +33,7 @@ TEST_CASE_4 = [se_resnet152(3, 2, 2).to(device)]
 TEST_CASE_5 = [se_resnext50_32x4d(3, 2, 2).to(device)]
 TEST_CASE_6 = [se_resnext101_32x4d(3, 2, 2).to(device)]
 
-TEST_CASE_PRETRAINED = [
-    se_resnet50,
-    {"spatial_dims": 2, "in_channels": 3, "num_classes": 2, "pretrained": True}
-]
+TEST_CASE_PRETRAINED = [se_resnet50, {"spatial_dims": 2, "in_channels": 3, "num_classes": 2, "pretrained": True}]
 
 
 class TestSENET(unittest.TestCase):
