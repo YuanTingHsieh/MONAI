@@ -125,7 +125,7 @@ class TorchImageTestCase3D(NumpyImageTestCase3D):
 
 def test_script_save(net, *inputs, eval_nets=True, device=None):
     """
-    Test the ability to save `net` as a Torchscript object, reload it, and apply inference. The value `inputs` is
+    Test the ability to save `net` as a TorchScript object, reload it, and apply inference. The value `inputs` is
     forward-passed through the original and loaded copy of the network and their results returned. Both `net` and its
     reloaded copy are set to evaluation mode if `eval_nets` is True. The forward pass for both is done without
     gradient accumulation.
@@ -155,12 +155,12 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
     # When using e.g., VAR, we will produce a tuple of outputs.
     # Hence, convert all to tuples and then compare all elements.
     if not isinstance(result1, tuple):
-        retult1 = (result1,)
-        retult2 = (result2,)
+        result1 = (result1,)
+        result2 = (result2,)
 
     for i, j in zip(result1, result2):
         if None not in (i, j):  # might be None
-            np.testing.assert_allclose(i.cpu(), j.cpu())
+            np.testing.assert_allclose(i.detach().cpu().numpy(), j.detach().cpu().numpy(), atol=1e-5)
 
 
 def query_memory(n=2):
