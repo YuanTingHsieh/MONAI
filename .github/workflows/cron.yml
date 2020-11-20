@@ -6,6 +6,7 @@ on:
 
 jobs:
   cron-gpu:
+    if: github.repository == 'Project-MONAI/MONAI'
     container:
       image: nvcr.io/nvidia/pytorch:20.03-py3  # CUDA 10.2
       options: "--gpus all"
@@ -36,6 +37,9 @@ jobs:
         python -m pip list
     - name: Run tests report coverage
       run: |
+        export LAUNCH_DELAY=$[ $RANDOM % 16 * 60 ]
+        echo "Sleep $LAUNCH_DELAY"
+        sleep $LAUNCH_DELAY
         nvidia-smi
         export CUDA_VISIBLE_DEVICES=$(python -m tests.utils)
         echo $CUDA_VISIBLE_DEVICES
@@ -50,6 +54,7 @@ jobs:
         file: ./coverage.xml
 
   cron-docker:
+    if: github.repository == 'Project-MONAI/MONAI'
     container:
       image: docker://projectmonai/monai:latest
       options: "--gpus all"

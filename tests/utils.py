@@ -12,9 +12,9 @@
 import os
 import tempfile
 import unittest
-import urllib
 from io import BytesIO
 from subprocess import PIPE, Popen
+from urllib.error import ContentTooShortError, HTTPError, URLError
 
 import numpy as np
 import torch
@@ -30,7 +30,7 @@ quick_test_var = "QUICKTEST"
 def test_pretrained_networks(network, input_param, device):
     try:
         net = network(**input_param).to(device)
-    except urllib.URLError as e:
+    except (URLError, HTTPError, ContentTooShortError) as e:
         raise unittest.SkipTest(e)
     return net
 
@@ -123,15 +123,25 @@ class TorchImageTestCase3D(NumpyImageTestCase3D):
         self.segn = torch.tensor(self.segn)
 
 
-def test_script_save(net, inputs):
+def test_script_save(net, *inputs, eval_nets=True):
+    """
+    Test the ability to save `net` as a Torchscript object, reload it, and apply inference. The value `inputs` is
+    forward-passed through the original and loaded copy of the network and their results returned. Both `net` and its
+    reloaded copy are set to evaluation mode if `eval_nets` is True. The forward pass for both is done without
+    gradient accumulation.
+    """
+
     scripted = torch.jit.script(net)
     buffer = scripted.save_to_buffer()
     reloaded_net = torch.jit.load(BytesIO(buffer))
-    net.eval()
-    reloaded_net.eval()
+
+    if eval_nets:
+        net.eval()
+        reloaded_net.eval()
+
     with torch.no_grad():
-        result1 = net(inputs)
-        result2 = reloaded_net(inputs)
+        result1 = net(*inputs)
+        result2 = reloaded_net(*inputs)
 
     return result1, result2
 
