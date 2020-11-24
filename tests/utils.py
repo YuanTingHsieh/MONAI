@@ -10,6 +10,7 @@
 # limitations under the License.
 
 import os
+import sys
 import tempfile
 import unittest
 from io import BytesIO
@@ -62,6 +63,13 @@ def skip_if_no_cuda(obj):
     Skip the unit tests if torch.cuda.is_available is False
     """
     return unittest.skipIf(not torch.cuda.is_available(), "Skipping CUDA-based tests")(obj)
+
+
+def skip_if_windows(obj):
+    """
+    Skip the unit tests if platform is win32
+    """
+    return unittest.skipIf(sys.platform == "win32", "Skipping tests on Windows")(obj)
 
 
 def make_nifti_image(array, affine=None):
@@ -125,23 +133,28 @@ class TorchImageTestCase3D(NumpyImageTestCase3D):
 
 def test_script_save(net, *inputs, eval_nets=True, device=None):
     """
-    Test the ability to save `net` as a TorchScript object, reload it, and apply inference. The value `inputs` is
+    Test the ability to save `net` as a Torchscript object, reload it, and apply inference. The value `inputs` is
     forward-passed through the original and loaded copy of the network and their results returned. Both `net` and its
     reloaded copy are set to evaluation mode if `eval_nets` is True. The forward pass for both is done without
     gradient accumulation.
 
     The test will be performed with CUDA if available, else CPU.
     """
-    if not device:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+    if True:
+        device = "cpu"
+    else:
+        # TODO: It would be nice to be able to use GPU if
+        # available, but this currently causes CI failures.
+        if not device:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Convert to device
     inputs = [i.to(device) for i in inputs]
-    net.to(device)
 
-    scripted = torch.jit.script(net)
+    scripted = torch.jit.script(net.cpu())
     buffer = scripted.save_to_buffer()
     reloaded_net = torch.jit.load(BytesIO(buffer)).to(device)
+    net.to(device)
 
     if eval_nets:
         net.eval()
@@ -158,9 +171,15 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
         result1 = (result1,)
         result2 = (result2,)
 
-    for i, j in zip(result1, result2):
-        if None not in (i, j):  # might be None
-            np.testing.assert_allclose(i.detach().cpu().numpy(), j.detach().cpu().numpy(), atol=1e-5)
+    for i, (r1, r2) in enumerate(zip(result1, result2)):
+        if None not in (r1, r2):  # might be None
+            np.testing.assert_allclose(
+                r1.detach().cpu().numpy(),
+                r2.detach().cpu().numpy(),
+                rtol=1e-5,
+                atol=0,
+                err_msg=f"failed on comparison number: {i}",
+            )
 
 
 def query_memory(n=2):
