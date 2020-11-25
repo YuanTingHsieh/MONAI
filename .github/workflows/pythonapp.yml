@@ -141,7 +141,6 @@ jobs:
         QUICKTEST: True
 
   GPU-quick-py3:  # GPU with full dependencies
-    if: github.repository == 'Project-MONAI/MONAI'
     strategy:
       matrix:
         environment:
