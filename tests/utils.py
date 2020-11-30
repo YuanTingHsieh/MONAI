@@ -147,8 +147,10 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
     inputs = [i.to(device) for i in inputs]
 
     scripted = torch.jit.script(net)
-    buffer = scripted.save_to_buffer()
-    reloaded_net = torch.jit.load(BytesIO(buffer)).to(device)
+    buffer = BytesIO()
+    torch.jit.save(scripted, buffer)
+    buffer.seek(0)
+    reloaded_net = torch.jit.load(buffer).to(device)
     net.to(device)
 
     if eval_nets:
