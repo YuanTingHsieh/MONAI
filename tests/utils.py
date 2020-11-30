@@ -146,6 +146,7 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
     # Convert to device
     inputs = [i.to(device) for i in inputs]
 
+    set_determinism(seed=0)
     scripted = torch.jit.script(net)
     buffer = BytesIO()
     torch.jit.save(scripted, buffer)
@@ -160,11 +161,11 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
         reloaded_net.eval()
 
     with torch.no_grad():
-        set_determinism(seed=0)
         result1 = net(*inputs)
         result2 = scripted(*inputs)
         result3 = reloaded_net(*inputs)
-        set_determinism(seed=None)
+    set_determinism(seed=None)
+
     # When using e.g., VAR, we will produce a tuple of outputs.
     # Hence, convert all to tuples and then compare all elements.
     if not isinstance(result1, tuple):
