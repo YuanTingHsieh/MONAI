@@ -152,35 +152,42 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
     buffer.seek(0)
     reloaded_net = torch.jit.load(buffer).to(device)
     net.to(device)
+    scripted.to(device)
 
     if eval_nets:
         net.eval()
+        scripted.eval()
         reloaded_net.eval()
 
     with torch.no_grad():
         set_determinism(seed=0)
         result1 = net(*inputs)
-        result2 = reloaded_net(*inputs)
+        result2 = scripted(*inputs)
+        result3 = reloaded_net(*inputs)
         set_determinism(seed=None)
     # When using e.g., VAR, we will produce a tuple of outputs.
     # Hence, convert all to tuples and then compare all elements.
     if not isinstance(result1, tuple):
         result1 = (result1,)
         result2 = (result2,)
+        result3 = (result3,)
 
-    try:
-        for i, (r1, r2) in enumerate(zip(result1, result2)):
-            if None not in (r1, r2):  # might be None
-                np.testing.assert_allclose(
-                    r1.detach().cpu().numpy(),
-                    r2.detach().cpu().numpy(),
-                    rtol=1e-5,
-                    atol=0,
-                    err_msg=f"failed on comparison number: {i}",
-                    verbose=True,
-                )
-    except AssertionError:
-        print('An error is raised.')
+    for i, (r1, r2, r3) in enumerate(zip(result1, result2, result3)):
+        if None not in (r1, r2, r3):  # might be None
+            np.testing.assert_allclose(
+                r1.detach().cpu().numpy(),
+                r2.detach().cpu().numpy(),
+                rtol=1e-5,
+                atol=0,
+                err_msg=f"Scripted vs original: failed on comparison number: {i}",
+            )
+            np.testing.assert_allclose(
+                r2.detach().cpu().numpy(),
+                r3.detach().cpu().numpy(),
+                rtol=1e-5,
+                atol=0,
+                err_msg=f"Scripted vs loaded: failed on comparison number: {i}",
+            )
 
 
 def query_memory(n=2):
