@@ -168,15 +168,19 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
         result1 = (result1,)
         result2 = (result2,)
 
-    for i, (r1, r2) in enumerate(zip(result1, result2)):
-        if None not in (r1, r2):  # might be None
-            np.testing.assert_allclose(
-                r1.detach().cpu().numpy(),
-                r2.detach().cpu().numpy(),
-                rtol=1e-5,
-                atol=0,
-                err_msg=f"failed on comparison number: {i}",
-            )
+    try:
+        for i, (r1, r2) in enumerate(zip(result1, result2)):
+            if None not in (r1, r2):  # might be None
+                np.testing.assert_allclose(
+                    r1.detach().cpu().numpy(),
+                    r2.detach().cpu().numpy(),
+                    rtol=1e-5,
+                    atol=0,
+                    err_msg=f"failed on comparison number: {i}",
+                    verbose=True,
+                )
+    except AssertionError:
+        print('An error is raised.')
 
 
 def query_memory(n=2):
