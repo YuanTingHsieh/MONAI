@@ -145,10 +145,8 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
 
     set_determinism(seed=0)
     scripted = torch.jit.script(net.cpu())
-    buffer = BytesIO()
-    torch.jit.save(scripted, buffer)
-    buffer.seek(0)
-    reloaded_net = torch.jit.load(buffer)
+    buffer = scripted.save_to_buffer()
+    reloaded_net = torch.jit.load(BytesIO(buffer))
 
     # Convert to device
     inputs = [i.to(device) for i in inputs]
