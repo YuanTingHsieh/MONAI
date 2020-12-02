@@ -143,15 +143,16 @@ def test_script_save(net, *inputs, eval_nets=True, device=None):
     if not device:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # Convert to device
-    inputs = [i.to(device) for i in inputs]
-
     set_determinism(seed=0)
-    scripted = torch.jit.script(net)
+    scripted = torch.jit.script(net.cpu())
     buffer = BytesIO()
     torch.jit.save(scripted, buffer)
     buffer.seek(0)
-    reloaded_net = torch.jit.load(buffer).to(device)
+    reloaded_net = torch.jit.load(buffer)
+
+    # Convert to device
+    inputs = [i.to(device) for i in inputs]
+    reloaded_net.to(device)
     net.to(device)
     scripted.to(device)
 
